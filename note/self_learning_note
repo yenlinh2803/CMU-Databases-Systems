@@ -1,0 +1,144 @@
+
+BASIC DATABASE COURSER: https://15445.courses.cs.cmu.edu/fall2019/schedule.html#
+
+
+# OLTP 
+On-line Transaction Processing:
+→ Simple queries that read/update a small amount of data that is related to a single entity in the database.
+This is usually the kind of application that people build first.
+
+Ex: 
+SELECT P.*, R.*
+FROM pages AS P
+INNER JOIN revisions AS R
+ON P.latest = R.revID
+WHERE P.pageID = ?
+
+UPDATE useracct
+SET lastLogin = NOW(),
+hostname = ?
+WHERE userID = ?
+
+INSERT INTO revisions
+VALUES (?,?…,?)
+
+
+# OLAP ##
+On-line Analytical Processing:
+→ Complex queries that read large portions
+of the database spanning multiple entities.
+You execute these workloads on the
+data you have collected from your
+OLTP application(s)
+
+SELECT COUNT(U.lastLogin),
+EXTRACT(month FROM
+U.lastLogin) AS month
+FROM useracct AS U
+WHERE U.hostname LIKE '%.gov'
+GROUP BY
+EXTRACT(month FROM U.lastLogin)
+
+# Data Storage models:
+The DBMS can store tuples in different ways that
+are better for either OLTP or OLAP workloads.
+We have been assuming the n-ary storage model
+(aka "row storage") so far this semester
+
+# N-ARY STORAGE MODEL (NSM)
+The DBMS stores all attributes for a single tuple
+contiguously in a page.
+Ideal for OLTP workloads where queries tend to
+operate only on an individual entity and insertheavy workloads.
+	Advantages
+	→ Fast inserts, updates, and deletes.
+	→ Good for queries that need the entire tuple.
+	Disadvantages
+	→ Not good for scanning large portions of the table and/or
+	a subset of the attributes.
+
+
+DECOMPOSITION STORAGE MODEL (DSM)
+The DBMS stores a single attribute (column) for all tuples contiguously in a block of data. Also known as a
+“column store.” This model is ideal for OLAP workloads where read-only queries perform large scans over
+a subset of the table’s attributes.
+
+	Advantages
+	→ Reduces the amount wasted I/O because the DBMS only
+	reads the data that it needs.
+	→ Better query processing and data compression (more on
+	this later).
+	-> Enables better compression because all of the values for the same attribute are stored contiguously
+	Disadvantages
+	→ Slow for point queries, inserts, updates, and deletes
+	because of tuple splitting/stitching.
+
+
+#### TUPLE IDENTIFICATION
+
+Choice #1: Fixed-length Offsets
+→ Each value is the same length for an attribute.
+Choice #2: Embedded Tuple Ids
+→ Each value is stored with its tuple id in a column
+
+
+
+## Conclusion
+The storage manager is not entirely independent
+from the rest of the DBMS.
+It is important to choose the right storage model
+for the target workload:
+→ OLTP = Row Store
+→ OLAP = Column Store
+Row stores are usually better for OLTP, while column stores ar better for OLAP.
+
+
+############################################# TREE INDEX 1 #############################################
+
+# Table Index:
+A table index is a replica of a subset of a table's
+attributes that are organized and/or sorted for
+efficient access using a subset of those attributes.
+The DBMS ensures that the contents of the table
+and the index are logically in sync.
+
+# Trade-off of index:
+There is a trade-off on the number of indexes to
+create per database.
+→ Storage Overhead
+→ Maintenance Overhead
+
+
+People also use the term to generally refer to a
+class of balanced tree data structures:
+→ B-Tree (1971)
+→ B+Tree (1973)
+→ B*Tree (1977?)
+→ B
+link-Tree (1981)
+
+
+#### B+Tree ######
+A B+Tree is a self-balancing tree data
+structure that keeps data sorted and
+allows searches, sequential access,
+insertions, and deletions in O(log n).
+→ Generalization of a binary search tree in
+that a node can have more than two
+children.
+→ Optimized for systems that read and write
+large blocks of data.
+
+#### B+Tree Properties ######
+A B+Tree is an M-way search tree with the
+following properties:
+→ It is perfectly balanced (i.e., every leaf node is at the same
+depth).
+→ Every node other than the root, is at least half-full
+M/2-1 ≤ #keys ≤ M-1
+→ Every inner node with k keys has k+1 non-null children
+
+
+
+
+
